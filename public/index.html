@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>绘影云笺</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
+    <!-- SF Pro Display 字体 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap">
+    <style>
+        @font-face {
+            font-family: 'ZhuZiAWan';
+            src: url('https://npm.elemecdn.com/akiblog@1.0.2/fontsdest/ZhuZiAWan.ttf') format('truetype');
+            font-display: swap;
+        }
+    </style>
+    <style>
+        :root {
+            /* 梦幻主题色 */
+            --theme-primary: rgb(255, 182, 193);    /* 浅粉色 */
+            --theme-secondary: rgb(183, 157, 220);  /* 梦幻紫 */
+            --theme-accent: rgb(255, 218, 224);     /* 淡粉色 */
+            --theme-light: rgb(250, 240, 245);      /* 超浅粉色 */
+            --theme-dark: rgb(147, 112, 219);       /* 深紫色 */
+            
+            /* Gray Colors */
+            --system-gray: rgb(142, 142, 147);
+            --system-gray2: rgb(174, 174, 178);
+            --system-gray3: rgb(199, 199, 204);
+            --system-gray4: rgb(209, 209, 214);
+            --system-gray5: rgb(229, 229, 234);
+            --system-gray6: rgb(242, 242, 247);
+            
+            /* Background Colors */
+            --system-background: var(--theme-light);
+            --system-grouped-background: rgb(242, 242, 247);
+            --system-secondary-background: rgb(255, 255, 255);
+            /* 阴影 */
+            --shadow-sm: 0 2px 8px rgba(183, 157, 220, 0.15);
+            --shadow-md: 0 4px 16px rgba(183, 157, 220, 0.2);
+            --shadow-lg: 0 8px 24px rgba(183, 157, 220, 0.25);
+            /* 动画曲线 */
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'ZhuZiAWan', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            background-color: var(--system-background);
+            color: rgb(0, 0, 0);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeIn 1.2s var(--ease-out-expo);
+            will-change: transform, opacity;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--theme-secondary);
+            text-shadow: 1px 1px 2px rgba(183, 157, 220, 0.2);
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+            transition: all 0.5s var(--ease-out-expo);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .upload-section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .drag-area {
+            border: 2px dashed var(--theme-secondary);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .drag-area.active {
+            border-color: var(--theme-primary);
+            background-color: rgba(255, 182, 193, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drag-area svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            color: var(--system-blue);
+        }
+
+        .drag-text {
+            font-size: 1.125rem;
+            color: rgb(0, 0, 0);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .drag-hint {
+            font-size: 0.875rem;
+            color: var(--system-gray);
+            font-weight: 400;
+        }
+
+        /* 折叠面板样式 */
+        .collapse-panel {
+            margin-top: 1rem;
+        }
+
+        .collapse-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--theme-secondary);
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .collapse-trigger:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .collapse-trigger svg {
+            transition: transform 0.3s ease;
+        }
+
+        .collapse-trigger.active svg {
+            transform: rotate(180deg);
+        }
+
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapse-content.active {
+            max-height: 500px; /* 根据内容调整 */
+        }
+
+        .url-input-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            width: 100%;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--system-gray4);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.8);
+            width: 100%;
+            min-width: 0;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--theme-secondary);
+            box-shadow: 0 0 0 3px rgba(183, 157, 220, 0.2);
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .button-primary {
+            background: var(--theme-secondary);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .button-primary:hover {
+            background: var(--theme-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(183, 157, 220, 0.3);
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            animation: slideDown 0.3s var(--ease-out-expo);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--theme-secondary);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .progress-info.success {
+            color: var(--system-green);
+        }
+
+        .progress-info.error {
+            color: var(--system-red);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--system-gray5);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--theme-secondary);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .gallery {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+        }
+
+        .gallery-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: rgb(0, 0, 0);
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0.5rem;
+            perspective: 1000px;
+        }
+
+        #imageList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .image-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.5s var(--ease-out-expo);
+            animation: floatIn 0.6s ease-out backwards;
+            transform-origin: center bottom;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            &.selected {
+                border: 2px solid var(--theme-secondary);
+                box-shadow: 0 0 0 4px rgba(183, 157, 220, 0.2);
+            }
+        }
+
+        .image-card:nth-child(n) {
+            animation-delay: calc(0.1s * var(--i, 0));
+        }
+
+        .image-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .image-preview-container {
+            position: relative;
+            width: 100%;
+            padding-top: 75%; /* 4:3 aspect ratio */
+            overflow: hidden;
+        }
+
+        .image-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+            background-color: var(--system-gray6);
+        }
+
+        .image-card:hover .image-preview {
+            transform: scale(1.05);
+        }
+
+        .image-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transform: translateY(100%);
+            transition: transform 0.3s var(--ease-out-expo);
+        }
+
+        .image-card:hover .image-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .copy-button {
+            background: var(--theme-secondary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,122,255,0.2);
+        }
+
+        .copy-button:hover {
+            background: var(--theme-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(183, 157, 220, 0.3);
+        }
+
+        .delete-button {
+            background: rgb(255, 69, 58);  /* 系统红色 */
+            color: white;
+            box-shadow: 0 2px 6px rgba(255, 69, 58, 0.2);
+        }
+
+        .delete-button:hover {
+            background: rgb(215, 0, 21);  /* 深红色 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+        }
+
+        .image-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .image-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgb(0, 0, 0);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .image-size {
+            font-size: 0.75rem;
+            color: var(--system-gray);
+            font-weight: 400;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+
+        .docs-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            color: var(--system-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .docs-link:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        .base64-input-group {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .base64-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--system-gray4);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s ease;
+        }
+
+        .base64-input:focus {
+            outline: none;
+            border-color: var(--system-blue);
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
+        }
+
+        /* 添加全局动画 */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+                filter: blur(10px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes floatIn {
+            0% { 
+                transform: translateY(40px) scale(0.95); 
+                opacity: 0;
+                filter: blur(10px);
+            }
+            100% { 
+                transform: translateY(0) scale(1); 
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+
+        .image-checkbox {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 2;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-card:hover .image-checkbox {
+            opacity: 1;
+        }
+
+        .image-card.selected .image-checkbox {
+            opacity: 1;
+        }
+
+        .gallery-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .batch-delete {
+            padding: 0.5rem 1rem;
+            background: var(--theme-secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.6;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .batch-delete.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .batch-delete:hover {
+            background: var(--system-red);
+        }
+
+        /* 自定义对话框样式 */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .dialog-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 90%;
+            width: 400px;
+            animation: slideUp 0.3s var(--ease-out-expo);
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--theme-secondary);
+        }
+
+        .dialog-content {
+            margin-bottom: 1.5rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .dialog-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dialog-button.primary {
+            background: var(--theme-secondary);
+            color: white;
+        }
+
+        .dialog-button.primary:hover {
+            background: var(--theme-dark);
+        }
+
+        .dialog-button.danger {
+            background: rgb(255, 69, 58);
+            color: white;
+        }
+
+        .dialog-button.danger:hover {
+            background: rgb(215, 0, 21);
+        }
+
+        .dialog-button.cancel {
+            background: var(--system-gray6);
+            color: var(--system-gray);
+        }
+
+        .dialog-button.cancel:hover {
+            background: var(--system-gray5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Toast 通知样式 */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(8px);
+            color: var(--theme-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s var(--ease-out-expo);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">绘影云笺</h1>
+            <a href="/docs" class="docs-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 20v-8m0 0V4m0 8h8m-8 0H4" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>API 文档</span>
+            </a>
+        </header>
+
+        <section class="upload-section">
+            <div class="drag-area" id="dragArea">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 16l4-4 4 4M4 16v4h16v-4M4 12v-1a7 7 0 0 1 7-7 7 7 0 0 1 7 7v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p class="drag-text">拖拽文件到这里上传</p>
+                <p class="drag-hint">或点击此处选择文件</p>
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+            </div>
+
+            <div class="collapse-panel">
+                <button class="collapse-trigger" onclick="toggleCollapse(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>更多上传方式</span>
+                </button>
+                <div class="collapse-content">
+                    <div class="url-input-group">
+                        <div style="width: 100%;">
+                            <p style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">请输入以.jpg、.png、.gif等图片格式结尾的URL</p>
+                            <input type="text" id="urlInput" class="url-input" placeholder="输入图片URL">
+                        </div>
+                        <button onclick="uploadUrl()" class="button button-primary">URL上传</button>
+                    </div>
+                    <div class="url-input-group">
+                        <textarea id="base64Input" class="url-input" 
+                            placeholder="粘贴 Base64 图片数据"
+                            rows="3"></textarea>
+                        <button onclick="uploadBase64()" class="button button-primary">Base64上传</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="uploadProgress" class="progress-container">
+                <div class="progress-info">
+                    <span id="progressText">准备上传...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="gallery">
+            <div class="gallery-header">
+                <div class="gallery-title">图片库</div>
+                <div class="gallery-actions">
+                    <div class="select-all-container">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        <label for="selectAll">全选</label>
+                    </div>
+                    <button id="batchDelete" class="batch-delete" onclick="batchDelete()">删除选中</button>
+                </div>
+            </div>
+            <div id="imageList"></div>
+        </section>
+    </div>
+
+    <!-- 对话框容器 -->
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog-container">
+            <h3 class="dialog-title" id="dialogTitle"></h3>
+            <div class="dialog-content" id="dialogContent"></div>
+            <div class="dialog-buttons" id="dialogButtons"></div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer">
+        <div class="toast" id="toast">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.querySelector('.progress-fill');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const imageList = document.getElementById('imageList');
+        const urlInput = document.getElementById('urlInput');
+        const fileInput = document.getElementById('fileInput');
+        const dragArea = document.querySelector('.drag-area');
+        const batchDeleteBtn = document.getElementById('batchDelete');
+        const selectedImages = new Set();
+
+        // 更新批量删除按钮状态
+        function updateBatchDeleteButton() {
+            if (selectedImages.size > 0) {
+                batchDeleteBtn.classList.add('active');
+                batchDeleteBtn.textContent = `删除选中 (${selectedImages.size})`;
+            } else {
+                batchDeleteBtn.classList.remove('active');
+                batchDeleteBtn.textContent = '删除选中';
+            }
+        }
+
+        // 阻止默认拖放行为
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+            dragArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dragArea.classList.add('active');
+        }
+
+        function unhighlight() {
+            dragArea.classList.remove('active');
+        }
+
+        // 拖拽和点击上传事件监听
+        dragArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files } });
+        }, { once: true });  // 使用 once 选项
+
+        dragArea.addEventListener('click', () => {
+            fileInput.value = ''; // 清除之前的选择
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e);
+            // 不要在这里清除 value，因为这样会阻止相同文件的重复上传
+        });
+
+        // 文件上传
+        async function handleFiles(e) {
+            const files = [...e.target.files];
+            if (files.length === 0) return;
+
+            showProgress();
+            let progressInterval;
+            const total = files.length;
+            let uploaded = 0;
+            const isMultiple = total > 1;
+
+            try {
+                // 分别上传每个文件
+                for (let i = 0; i < files.length; i++) {
+                    const singleFormData = new FormData();
+                    singleFormData.append('files', files[i]);
+                    
+                    // 单个文件上传时显示进度为0到90
+                    if (!isMultiple) {
+                        updateProgress(0, '准备上传...');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        updateProgress(30, '正在上传...');
+                    }
+                    
+                    const response = await fetch('/api/images/upload', {
+                        method: 'POST',
+                        body: singleFormData
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        uploaded++;
+                        const progress = isMultiple ? 
+                            (uploaded / total) * 100 : 
+                            90;  // 单文件上传成功后显示90%
+                        if (isMultiple) {
+                            updateProgress(progress, `已上传 ${uploaded}/${total}`);
+                        } else {
+                            updateProgress(progress, '处理中...');
+                            await new Promise(resolve => setTimeout(resolve, 300));
+                        }
+                    }
+                }
+
+                // 所有文件上传完成
+                if (isMultiple) {
+                    updateProgress(100, `已完成 ${total}/${total} 个文件上传！`);
+                } else {
+                    updateProgress(100, '上传完成！');
+                }
+                setTimeout(hideProgress, 1000);
+                fetchImages();
+
+            } catch (error) {
+                console.error('Upload failed:', error);
+                updateProgress(0, '上传失败');
+                setTimeout(hideProgress, 1000);
+            }
+        }
+
+        // URL上传
+        async function uploadUrl() {
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            showProgress();
+
+            try {
+                // 显示实际进度
+                updateProgress(0, '准备上传...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                updateProgress(30, '正在上传...');
+
+                const response = await fetch('/api/images/upload/single', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    updateProgress(90, '处理中...');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    updateProgress(100, '上传完成');
+                    setTimeout(hideProgress, 500);
+                    urlInput.value = '';
+                    fetchImages();
+                }
+            } catch (error) {
+                console.error('URL upload failed:', error);
+                updateProgress(0, '上传失败');
+                setTimeout(hideProgress, 1000);
+            }
+        }
+
+        // 进度条控制
+        function showProgress() {
+            uploadProgress.style.display = 'block';
+            updateProgress(0);
+        }
+
+        function hideProgress() {
+            uploadProgress.style.display = 'none';
+        }
+
+        function updateProgress(percent, text = '') {
+            // 确保百分比是有效数字
+            percent = Math.min(Math.max(0, percent), 100);
+            percent = Math.round(percent * 10) / 10;  // 保留一位小数
+
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
+            if (progressText) {
+                progressText.textContent = text;
+                // 根据进度更新状态样式
+                const progressInfo = progressText.parentElement;
+                progressInfo.classList.remove('success', 'error');
+                if (percent === 100) {
+                    progressInfo.classList.add('success');
+                } else if (percent === 0 && text.includes('失败')) {
+                    progressInfo.classList.add('error');
+                }
+            }
+            if (progressPercent) {
+                progressPercent.textContent = `${Math.round(percent)}%`;
+            }
+        }
+
+        // 获取图片列表
+        async function fetchImages() {
+            try {
+                const response = await fetch('/api/images');
+                const result = await response.json();
+                if (result.success) {
+                    displayImages(result.files || []);
+                } else {
+                    console.error('Failed to fetch images:', result.error);
+                }
+            } catch (error) {
+                console.error('Failed to fetch images:', error);
+                displayImages([]);
+            }
+        }
+
+        // 显示图片列表
+        function displayImages(images) {
+            if (!Array.isArray(images)) {
+                console.error('Invalid images data:', images);
+                images = [];
+            }
+            
+            // 重置全选复选框
+            const selectAllCheckbox = document.getElementById('selectAll');
+            selectAllCheckbox.checked = false;
+            
+            imageList.innerHTML = images.map(image => `
+                <div class="image-card" data-filename="${image.fileName}">
+                    <input type="checkbox" 
+                           class="image-checkbox" 
+                           onchange="toggleSelect('${image.fileName}')"
+                           ${selectedImages.has(image.fileName) ? 'checked' : ''}>
+                    <div class="image-preview-container">
+                        <img src="${image.url}" 
+                            alt="${image.fileName}" 
+                            class="image-preview"
+                            loading="lazy"
+                            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%23f0f0f0%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22>加载失败</text></svg>'">
+                    </div>
+                    <div class="image-info">
+                        <div class="image-info-header">
+                            <div class="image-name">${image.fileName}</div>
+                            <div class="image-size">${formatSize(image.size)}</div>
+                        </div>
+                        <div class="image-actions">
+                            <button onclick="copyUrl('${image.url}')" class="action-button copy-button">
+                                复制链接
+                            </button>
+                            <button onclick="deleteImage('${image.fileName}')" class="action-button delete-button">
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 检查是否需要自动勾选全选框
+            const totalImages = images.length;
+            const selectedCount = selectedImages.size;
+            selectAllCheckbox.checked = totalImages > 0 && selectedCount === totalImages;
+            
+            updateBatchDeleteButton();
+        }
+
+        // 格式化文件大小
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 复制URL
+        async function copyUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('链接已复制到剪贴板');
+            });
+        }
+
+        // 删除图片
+        async function deleteImage(fileName) {
+            if (!await showConfirm('确定要删除这张图片吗？')) return;
+
+            showProgress();
+            let progressInterval;
+
+            try {
+                // 启动进度条动画
+                let progress = 0;
+                progressInterval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += (90 - progress) / 10;
+                        updateProgress(progress, '正在删除...');
+                    }
+                }, 200);
+
+                const response = await fetch(`/api/images/${fileName}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    clearInterval(progressInterval);
+                    updateProgress(100, '删除成功！');
+                    setTimeout(hideProgress, 500);
+                    fetchImages();
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Delete failed:', error);
+                hideProgress();
+            }
+        }
+
+        // 开始加载
+        fetchImages();
+
+        // Base64上传
+        async function uploadBase64() {
+            const base64 = document.getElementById('base64Input').value.trim();
+            if (!base64) return;
+
+            showProgress();
+            try {
+                const response = await fetch('/api/images/upload/single', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ base64 })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    updateProgress(100, '上传完成');
+                    setTimeout(hideProgress, 500);
+                    document.getElementById('base64Input').value = '';
+                    fetchImages();
+                }
+            } catch (error) {
+                console.error('Base64 upload failed:', error);
+                hideProgress();
+            }
+        }
+
+        // 切换全选状态
+        function toggleSelectAll() {
+            const checkbox = document.getElementById('selectAll');
+            const cards = document.querySelectorAll('.image-card');
+            const checkboxes = document.querySelectorAll('.image-checkbox');
+            
+            cards.forEach((card, index) => {
+                const fileName = card.dataset.filename;
+                const singleCheckbox = checkboxes[index];
+                
+                if (checkbox.checked) {
+                    selectedImages.add(fileName);
+                    card.classList.add('selected');
+                    singleCheckbox.checked = true;
+                } else {
+                    selectedImages.delete(fileName);
+                    card.classList.remove('selected');
+                    singleCheckbox.checked = false;
+                }
+            });
+            updateBatchDeleteButton();
+        }
+
+        // 切换单个选择状态
+        function toggleSelect(fileName) {
+            const card = document.querySelector(`[data-filename="${fileName}"]`);
+            const checkbox = card.querySelector('.image-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            
+            if (selectedImages.has(fileName)) {
+                selectedImages.delete(fileName);
+                card.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                selectedImages.add(fileName);
+                card.classList.add('selected');
+                checkbox.checked = true;
+            }
+            
+            // 检查是否所有图片都被选中
+            const totalImages = document.querySelectorAll('.image-card').length;
+            const selectedCount = selectedImages.size;
+            
+            // 更新全选复选框状态
+            selectAllCheckbox.checked = totalImages > 0 && selectedCount === totalImages;
+            
+            updateBatchDeleteButton();
+        }
+
+        // 批量删除功能
+        async function batchDelete() {
+            if (!await showConfirm(`确定要删除选中的 ${selectedImages.size} 张图片吗？`)) return;
+
+            showProgress();
+            let progressInterval;
+            const total = selectedImages.size;
+            let deleted = 0;
+
+            try {
+                // 启动进度条动画
+                progressInterval = setInterval(() => {
+                    const percent = (deleted / total) * 100;
+                    updateProgress(percent, `正在删除 ${deleted}/${total}`);
+                }, 200);
+
+                for (const fileName of selectedImages) {
+                    await fetch(`/api/images/${fileName}`, {
+                        method: 'DELETE'
+                    });
+                    deleted++;
+                }
+
+                clearInterval(progressInterval);
+                updateProgress(100, '删除完成！');
+                setTimeout(hideProgress, 1000);
+                selectedImages.clear();
+                updateBatchDeleteButton();
+                fetchImages();
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Batch delete failed:', error);
+                hideProgress();
+            }
+        }
+
+        // 折叠面板控制
+        function toggleCollapse(trigger) {
+            const content = trigger.nextElementSibling;
+            trigger.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // 对话框控制
+        function showDialog({ title, content, buttons }) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('dialogOverlay');
+                const titleEl = document.getElementById('dialogTitle');
+                const contentEl = document.getElementById('dialogContent');
+                const buttonsEl = document.getElementById('dialogButtons');
+
+                titleEl.textContent = title;
+                contentEl.textContent = content;
+                buttonsEl.innerHTML = '';
+
+                buttons.forEach(btn => {
+                    const button = document.createElement('button');
+                    button.className = `dialog-button ${btn.type || 'cancel'}`;
+                    button.textContent = btn.text;
+                    button.onclick = () => {
+                        overlay.style.display = 'none';
+                        resolve(btn.value);
+                    };
+                    buttonsEl.appendChild(button);
+                });
+
+                overlay.style.display = 'flex';
+            });
+        }
+
+        // 提示对话框
+        async function showAlert(message) {
+            await showDialog({
+                title: '提示',
+                content: message,
+                buttons: [
+                    { text: '确定', type: 'primary', value: true }
+                ]
+            });
+        }
+
+        // 确认对话框
+        async function showConfirm(message) {
+            return await showDialog({
+                title: '确认',
+                content: message,
+                buttons: [
+                    { text: '取消', type: 'cancel', value: false },
+                    { text: '确定', type: 'danger', value: true }
+                ]
+            });
+        }
+
+        // Toast 通知控制
+        function showToast(message, duration = 2000) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+    </script>
+</body>
+</html> 
