@@ -1,0 +1,8 @@
+{
+  "name": "默认相册",
+  "description": "自动创建的默认相册",
+  "created_at": "2025-01-29T12:55:19.070705",
+  "updated_at": "2025-01-29T12:55:19.070705",
+  "is_default": true,
+  "cover_image": null
+}
